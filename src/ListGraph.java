@@ -4,20 +4,18 @@ import java.util.*;
 public class ListGraph<T> implements Graph<T>, Serializable {
     private Map<T, Set<Edge<T>>> nodes = new HashMap<>();
 
-    //add
     @Override
     public void add(T node) {
         nodes.putIfAbsent(node, new HashSet<>());
     }
 
-    //remove
     @Override
     public void remove(T node) {
         if (!nodes.containsKey(node)) {
             throw new NoSuchElementException();
         }
+        nodes.values().forEach(c -> c.removeIf(v -> v.getDestination().equals(node)));
         nodes.remove(node);
-
     }
 
     @Override
@@ -44,7 +42,6 @@ public class ListGraph<T> implements Graph<T>, Serializable {
 
     }
 
-    //disconnect
     @Override
     public void disconnect(T node1, T node2) {
         if (!nodes.containsKey(node1) || !nodes.containsKey(node2)) {
@@ -77,11 +74,18 @@ public class ListGraph<T> implements Graph<T>, Serializable {
         if (!nodes.containsKey(node1) || !nodes.containsKey(node2)) {
             throw new NoSuchElementException();
         }
+        if (getEdgeBetween(node1, node2) == null) {
+            throw new NoSuchElementException();
+        }
         if (weight < 0) {
             throw new IllegalArgumentException();
         }
-        //Sätta vikten för kanten mellan två olika noder.. Hur?
 
+        Set<Edge<T>> aEdges = nodes.get(node1);
+        Set<Edge<T>> bEdges = nodes.get(node2);
+
+        getEdgeBetween(node1, node2).setWeight(weight);
+        getEdgeBetween(node2, node1).setWeight(weight);
     }
 
     @Override
@@ -100,10 +104,12 @@ public class ListGraph<T> implements Graph<T>, Serializable {
     @Override
     public boolean pathExists(T from, T to) {
         Set<T> visited = new HashSet<>();
-        depthFirstVisitAll(from, visited);
+        try {
+            depthFirstVisitAll(from, visited);
+        } catch (Exception e) {
+        }
         return visited.contains(to);
     }
-
 
     public void depthFirstVisitAll(T current, Set<T> visited) {
         visited.add(current);
@@ -178,7 +184,6 @@ public class ListGraph<T> implements Graph<T>, Serializable {
             }
         }
     }
-
 
     public String toString() {
         StringBuilder sb = new StringBuilder();
